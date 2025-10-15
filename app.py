@@ -125,17 +125,119 @@ def create_app():
                 
                 studies = [dict(r) for r in rows]
                 
-                return jsonify({
-                    "dissociation": f"{term_a} \\ {term_b}",
-                    "term_a": term_a,
-                    "term_b": term_b,
-                    "description": f"Studies mentioning '{term_a}' but NOT '{term_b}'",
-                    "count": len(studies),
-                    "studies": studies
-                }), 200
+                # Generate HTML table
+                html = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Functional Dissociation: {term_a} \\ {term_b}</title>
+                    <style>
+                        body {{
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                            max-width: 1200px;
+                            margin: 40px auto;
+                            padding: 20px;
+                            background-color: #f5f5f5;
+                        }}
+                        .header {{
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                            padding: 30px;
+                            border-radius: 10px;
+                            margin-bottom: 30px;
+                            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                        }}
+                        h1 {{
+                            margin: 0 0 10px 0;
+                            font-size: 28px;
+                        }}
+                        .info {{
+                            font-size: 16px;
+                            opacity: 0.9;
+                        }}
+                        table {{
+                            width: 100%;
+                            border-collapse: collapse;
+                            background-color: white;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                            border-radius: 8px;
+                            overflow: hidden;
+                        }}
+                        th {{
+                            background-color: #667eea;
+                            color: white;
+                            padding: 15px;
+                            text-align: left;
+                            font-weight: 600;
+                        }}
+                        td {{
+                            padding: 12px 15px;
+                            border-bottom: 1px solid #e0e0e0;
+                        }}
+                        tr:hover {{
+                            background-color: #f8f9fa;
+                        }}
+                        tr:last-child td {{
+                            border-bottom: none;
+                        }}
+                        .count-badge {{
+                            display: inline-block;
+                            background-color: #764ba2;
+                            color: white;
+                            padding: 5px 15px;
+                            border-radius: 20px;
+                            font-size: 14px;
+                            margin-top: 10px;
+                        }}
+                        .weight {{
+                            font-weight: bold;
+                            color: #667eea;
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>🧠 Functional Dissociation by Terms</h1>
+                        <div class="info">
+                            <strong>Term A:</strong> {term_a}<br>
+                            <strong>Term B:</strong> {term_b}<br>
+                            <strong>Description:</strong> Studies mentioning '{term_a}' but NOT '{term_b}'
+                        </div>
+                        <div class="count-badge">Total Results: {len(studies)}</div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Study ID</th>
+                                <th>Term</th>
+                                <th>Weight</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                """
+                
+                for idx, study in enumerate(studies, 1):
+                    html += f"""
+                            <tr>
+                                <td>{idx}</td>
+                                <td>{study['study_id']}</td>
+                                <td>{study['term']}</td>
+                                <td class="weight">{study['weight']:.6f}</td>
+                            </tr>
+                    """
+                
+                html += """
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+                """
+                
+                return html, 200
                 
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
+            return f"<h1>Error</h1><p>{str(e)}</p>", 500
 
     @app.get("/dissociate/locations/<coords_a>/<coords_b>", endpoint="dissociate_locations")
     def dissociate_by_locations(coords_a, coords_b):
@@ -147,7 +249,7 @@ def create_app():
             x1, y1, z1 = map(float, coords_a.split("_"))
             x2, y2, z2 = map(float, coords_b.split("_"))
         except ValueError:
-            return jsonify({"error": "Invalid coordinates format. Use x_y_z"}), 400
+            return "<h1>Error</h1><p>Invalid coordinates format. Use x_y_z</p>", 400
             
         eng = get_engine()
         try:
@@ -174,17 +276,132 @@ def create_app():
                 
                 studies = [dict(r) for r in rows]
                 
-                return jsonify({
-                    "dissociation": f"[{x1}, {y1}, {z1}] \\ [{x2}, {y2}, {z2}]",
-                    "coords_a": {"x": x1, "y": y1, "z": z1},
-                    "coords_b": {"x": x2, "y": y2, "z": z2},
-                    "description": f"Studies at [{x1}, {y1}, {z1}] but NOT at [{x2}, {y2}, {z2}]",
-                    "count": len(studies),
-                    "studies": studies
-                }), 200
+                # Generate HTML table
+                html = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Functional Dissociation: [{x1}, {y1}, {z1}] \\ [{x2}, {y2}, {z2}]</title>
+                    <style>
+                        body {{
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                            max-width: 1200px;
+                            margin: 40px auto;
+                            padding: 20px;
+                            background-color: #f5f5f5;
+                        }}
+                        .header {{
+                            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                            color: white;
+                            padding: 30px;
+                            border-radius: 10px;
+                            margin-bottom: 30px;
+                            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                        }}
+                        h1 {{
+                            margin: 0 0 10px 0;
+                            font-size: 28px;
+                        }}
+                        .info {{
+                            font-size: 16px;
+                            opacity: 0.9;
+                        }}
+                        .coords {{
+                            display: inline-block;
+                            background-color: rgba(255,255,255,0.2);
+                            padding: 5px 10px;
+                            border-radius: 5px;
+                            margin: 5px;
+                        }}
+                        table {{
+                            width: 100%;
+                            border-collapse: collapse;
+                            background-color: white;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                            border-radius: 8px;
+                            overflow: hidden;
+                        }}
+                        th {{
+                            background-color: #f5576c;
+                            color: white;
+                            padding: 15px;
+                            text-align: left;
+                            font-weight: 600;
+                        }}
+                        td {{
+                            padding: 12px 15px;
+                            border-bottom: 1px solid #e0e0e0;
+                        }}
+                        tr:hover {{
+                            background-color: #fff5f7;
+                        }}
+                        tr:last-child td {{
+                            border-bottom: none;
+                        }}
+                        .count-badge {{
+                            display: inline-block;
+                            background-color: #f093fb;
+                            color: white;
+                            padding: 5px 15px;
+                            border-radius: 20px;
+                            font-size: 14px;
+                            margin-top: 10px;
+                        }}
+                        .distance {{
+                            font-weight: bold;
+                            color: #f5576c;
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>📍 Functional Dissociation by MNI Coordinates</h1>
+                        <div class="info">
+                            <strong>Coordinates A:</strong> 
+                            <span class="coords">[{x1}, {y1}, {z1}]</span><br>
+                            <strong>Coordinates B:</strong> 
+                            <span class="coords">[{x2}, {y2}, {z2}]</span><br>
+                            <strong>Description:</strong> Studies at [{x1}, {y1}, {z1}] but NOT at [{x2}, {y2}, {z2}]
+                        </div>
+                        <div class="count-badge">Total Results: {len(studies)}</div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Study ID</th>
+                                <th>X</th>
+                                <th>Y</th>
+                                <th>Z</th>
+                                <th>Distance from A (mm)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                """
+                
+                for idx, study in enumerate(studies, 1):
+                    html += f"""
+                            <tr>
+                                <td>{idx}</td>
+                                <td>{study['study_id']}</td>
+                                <td>{study['x']:.1f}</td>
+                                <td>{study['y']:.1f}</td>
+                                <td>{study['z']:.1f}</td>
+                                <td class="distance">{study['dist_a']:.2f}</td>
+                            </tr>
+                    """
+                
+                html += """
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+                """
+                
+                return html, 200
                 
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
+            return f"<h1>Error</h1><p>{str(e)}</p>", 500
 
     @app.get("/test_db", endpoint="test_db")
     
